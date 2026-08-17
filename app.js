@@ -1,28 +1,49 @@
-const readline = require('readline')
 const fs = require('fs')
+const readline = require('readline')
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 })
 
-const today = new Date().toISOString().split('T')[0]
-const flineName = `journal-${today}.txt`;
+const fileName = 'todo.txt'
 
-console.log(`welcome to journal![Date:${today}]`);
+function showTodo() {
+    console.log('\n---Todo List ----')
 
-rl.question('Write your journal \n>', (entry) => {
-    if (entry.trim() === '') {
-        console.log('cant be empty');
-        rl.close();
-        return;
+    if (fs.existsSync(fileName)) {
+        const data = fs.readFileSync(fileName, 'utf8')
+
+        if (data.trim() === '') {
+            console.log('No data yet')
+        } else {
+            console.log(data)
+        }
+    } else {s
+        console.log('no todo file')
     }
+    console.log('--------\n')
+}
 
-    const logTime = new Date().toLocaleDateString();
-    const contentTosave = `n[${logTime}] ${entry}\n------------------`;
+function Todo() {
+    rl.question('Enter to do ', (task) => {
+        if (task.toLowerCase() === 'exit') {
+            console.log('bye bye')
+            rl.close()
+            return;
+        }
 
-    fs.appendFileSync(flineName, contentTosave);
+        if (task.trim() === '') {
+            console.log('no empty space')
+            Todo();
+            return;
+        }
+        fs.appendFileSync(fileName, `-${task}\n`)
+        console.log(`added:"${task}"`)
+        showTodo()
+        Todo()
+    })
+}
 
-    console.log(`saved to"${flineName}"!`);
-    rl.close();
-})
+showTodo()
+Todo()
