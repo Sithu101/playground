@@ -1,49 +1,84 @@
-const fs = require('fs')
-const readline = require('readline')
+const fs = require('fs');
+const readline = require('readline');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
-})
+});
 
-const fileName = 'todo.txt'
+const fileName = 'contact-json'
 
-function showTodo() {
-    console.log('\n---Todo List ----')
-
-    if (fs.existsSync(fileName)) {
-        const data = fs.readFileSync(fileName, 'utf8')
-
-        if (data.trim() === '') {
-            console.log('No data yet')
-        } else {
-            console.log(data)
-        }
-    } else {s
-        console.log('no todo file')
-    }
-    console.log('--------\n')
+function checkContact() {
+    if (!fs.existsSync(fileName)) return [];
+    const dataRead = fs.readFileSync(fileName, 'utf8')
+    if (dataRead.trim() === '') return [];
+    return JSON.parse(dataRead);
 }
 
-function Todo() {
-    rl.question('Enter to do ', (task) => {
-        if (task.toLowerCase() === 'exit') {
-            console.log('bye bye')
-            rl.close()
-            return;
-        }
+function saveContact(contact) {
+    fs.writeFileSync(fileName, JSON.stringify(contact, null, 2))
+}
 
-        if (task.trim() === '') {
-            console.log('no empty space')
-            Todo();
-            return;
+function listContact() {
+    const contacts = checkContact();
+    console.log('\n---Contacct list----')
+    if (contacts.length === 0) {
+        console.log('No contact')
+    } else {
+        contacts.forEach((c, index) => {
+            console.log(`${index + 1}. Name: ${c.name} | phone:${c.phone}`)
+        })
+    }
+    console.log('-----------\n')
+}
+
+function mainMenu() {
+    console.log('1. view contact')
+    console.log('2. add contact');
+    console.log('3. exit');
+
+    rl.question('Choose an option (1-3)', (chose) => {
+        if (chose === '1') {
+            listContact()
+            mainMenu();
+        } else if (chose === '2') {
+            addContactPromp()
+        } else if (chose === '3') {
+            console.log('BYE BYE')
+            rl.close();
+        } else {
+            console.log('Invalid choise.\n')
+            mainMenu()
         }
-        fs.appendFileSync(fileName, `-${task}\n`)
-        console.log(`added:"${task}"`)
-        showTodo()
-        Todo()
+    });
+}
+
+function addContactPromp() {
+    rl.question('Enter name', (name) => {
+        if (name.trim() === '') {
+            console.log('Cant be empty\n');
+            return mainMenu();
+        }
+        rl.question('Enter Phone', (phone) => {
+            if (phone.trim() === '') {
+                console.log('Number Empty\n')
+                return mainMenu()
+            } else {
+                const contacts = checkContact()
+
+                contacts.push({
+                    name: name.trim(),
+                    phone: phone.trim()
+                })
+
+                saveContact(contacts)
+                console.log(`Contact save ${name}\n`)
+                mainMenu()
+            }
+
+        })
     })
 }
 
-showTodo()
-Todo()
+console.log('---- Welcome-----')
+mainMenu();
